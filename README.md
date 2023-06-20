@@ -45,6 +45,10 @@ pip install pandas numpy PyQt5 xgboost
 
 ## Usage 
 
+```
+python pbf_rd_pred.py
+```
+
 To run the program, input material properties of powder and etc. (See "pbf_rd_pred manual.pptx" file)
 
 Expected output: process parameters
