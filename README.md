@@ -1,11 +1,13 @@
 # PBF-Processing-Condition-Predictor
-## Project Title
-
-Provide a brief, catchy project title here.
-
 ## Project Description
 
-Write a detailed description of your project. Mention what the project does, who it is for, and why you built it. 
+Our project introduces a user-friendly GUI program designed to optimize powder bed fusion (PBF) manufacturing outcomes through intelligent process condition identification. Leveraging the power of machine learning, this application conducts an inverse prediction based on a pre-trained model, accounting for the distinct material properties of the powder used in the process.
+
+Our main goal is to assist in determining the process conditions that would yield PBF products with high relative density—a crucial aspect determining the quality and performance of the end product. The tool, therefore, is geared towards professionals and hobbyists in the additive manufacturing domain seeking to enhance the effectiveness and efficiency of their PBF processes.
+
+Furthermore, for best printing results, the software provides an essential recommendation: users are advised to adopt a layer thickness surpassing the d50 size of the employed powder. This guidance aids in realizing a superior level of precision and detail in the produced objects, improving overall print quality.
+
+Whether you're an experienced professional or an enthusiast in the PBF manufacturing domain, our project provides an innovative, easy-to-use solution to maximize the quality of your production processes.
 
 ## Prerequisites
 
@@ -16,8 +18,8 @@ Ensure you have Python installed on your machine. This project was developed usi
 First, clone the repository to your local machine:
 
 ```
-git clone https://github.com/username/project-name.git
-cd project-name
+git clone https://github.com/Jaemin-Wang/PBF-Processing-Condition-Predictor.git
+cd PBF-Processing-Condition-Predictor
 ```
 
 To run this project, you will need to install several dependencies. Here's a list of Python libraries that you need to install:
@@ -43,28 +45,15 @@ pip install pandas numpy PyQt5 xgboost
 
 ## Usage 
 
-Explain how to use your project. If it's a script, show how to run the script in command line, what are the expected inputs and outputs. If it's a library, explain how to use your functions, and show some examples.
-
-## Code Overview 
-
-Provide a general understanding of your code files here. 
-
-## Contributing
-
-Let people know how they can contribute to your project. Can they submit pull requests, report issues, or contribute in any other way?
-
-## License
-
-Insert licensing information here.
+To run the program, input material properties of powder and etc. (See pbf_rd_pred manual file)
+Expected output: process parameters
+Expected run time: it may take up to several days depending on the conditions.
 
 ## Contact Information 
 
-Your Name - YourEmail@example.com
+Jaemin Wang - wjmpinkiepie@postech.ac.kr
 
-Project Link: [https://github.com/username/project-name](https://github.com/username/project-name)
+Project Link: https://github.com/Jaemin-Wang/PBF-Processing-Condition-Predictor
 
 Feel free to contact me if you have any questions!
 
-## Acknowledgements 
-
-This section is optional. It's a space where you can show appreciation to those who have contributed to the project.
