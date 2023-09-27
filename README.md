@@ -9,6 +9,8 @@ Furthermore, for best printing results, the software provides an essential recom
 
 Whether you're an experienced professional or an enthusiast in the PBF manufacturing domain, our project provides an innovative, easy-to-use solution to maximize the quality of your production processes.
 
+The full codes generated and used in the study to develop the GUI program are also available in this repository. You can find these codes in the directory named `PBFRD`. Navigate to this directory to access and utilize the codes for your needs.
+
 ## Prerequisites
 
 Ensure you have Python installed on your machine. This project was developed using Python 3.8, but other versions should work as well. 
