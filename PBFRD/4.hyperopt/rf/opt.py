@@ -1,0 +1,171 @@
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+import shap
+import joblib
+import pickle
+import sys
+import csv
+import math
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from matplotlib import pyplot
+import warnings
+
+import optuna
+
+from sklearn import datasets
+import sklearn.datasets
+import sklearn.metrics
+import xgboost as xgb
+import psutil
+import time
+
+warnings.filterwarnings(action='ignore', category=UserWarning)
+
+data = pd.read_csv("data.csv")
+data = data.dropna(axis = 0)
+data = data.to_numpy()
+
+train_X = []
+test_X = []
+val_X = []
+train_y = []
+test_y = []
+val_y = []
+
+iternum = 25
+
+for iteri in range(iternum):
+	train, test = train_test_split(data, test_size=0.15)
+	train, val = train_test_split(train, test_size=0.15)
+	traini_X, traini_y = np.split(train, [-1], axis=1)
+	testi_X, testi_y = np.split(test, [-1], axis=1)
+	vali_X, vali_y = np.split(val, [-1], axis=1)
+
+	mean = traini_X.mean(axis=0)
+	std = traini_X.std(axis=0)
+	impstd = 98
+	multstd = 1
+
+	for i in range(len(traini_y)):
+		traini_y[i][0] -= impstd
+		traini_y[i][0] *= multstd
+		traini_y[i][0] = 1 / (1 + math.exp(-traini_y[i][0]))
+	for i in range(len(vali_y)):
+		vali_y[i][0] -= impstd
+		vali_y[i][0] *= multstd
+		vali_y[i][0] = 1 / (1 + math.exp(-vali_y[i][0]))
+	for i in range(len(testi_y)):
+		testi_y[i][0] -= impstd
+		testi_y[i][0] *= multstd
+		testi_y[i][0] = 1 / (1 + math.exp(-testi_y[i][0]))
+	
+
+	for j in range(len(traini_X[0])):
+		for i in range(len(traini_X)):
+			traini_X[i][j] -= mean[j]
+			if std[j] != 0:
+				traini_X[i][j] /= std[j]
+		for i in range(len(vali_X)):
+			vali_X[i][j] -= mean[j]
+			if std[j] != 0:
+				vali_X[i][j] /= std[j]
+		for i in range(len(testi_X)):
+			testi_X[i][j] -= mean[j]
+			if std[j] != 0:
+				testi_X[i][j] /= std[j]
+	
+	train_X.append(traini_X)
+	test_X.append(testi_X)
+	val_X.append(vali_X)
+	train_y.append(traini_y)
+	test_y.append(testi_y)
+	val_y.append(vali_y)
+
+train_X = np.array(train_X)
+test_X = np.array(test_X)
+val_X = np.array(val_X)
+train_y = np.array(train_y)
+test_y = np.array(test_y)
+val_y = np.array(val_y)
+
+print('train_X.shape, test_X.shape, val_X.shape', train_X.shape, test_X.shape, val_X.shape)
+print('train_y.shape, test_y.shape, val_y.shape', train_y.shape, test_y.shape, val_y.shape)
+
+def objective(trial):
+
+	params = {
+		'n_estimators': trial.suggest_int("n_estimators", 10, 2000),
+		"max_depth": trial.suggest_int("max_depth", 6, 50),
+		"min_samples_split": 2,
+		"min_samples_leaf": 1,
+		"min_weight_fraction_leaf": 0,
+		"min_impurity_decrease": 0
+	}
+
+	accuracy = 0
+	for i in range(iternum):
+		model = RandomForestRegressor(**params, random_state = 1234)
+
+		model.fit(train_X[i], train_y[i])
+		pre = model.predict(test_X[i]).flatten()
+		intest_y = np.log(-(test_y[i]/(test_y[i] - 1))) / multstd + impstd
+		intest_y = intest_y.flatten()
+		pre = pre.astype('float64')
+		pre[pre <= 0] = 1e-10
+		pre[pre >= 1] = 1-1e-10
+		pre = np.log(-(pre/(pre - 1))) / multstd + impstd
+		pre[pre > 100] = 100
+		pre[pre < 50] = 50
+		intest_y[intest_y < 98] = 0
+		intest_y[intest_y >= 98] = 1
+		pre[pre < 98] = 0
+		pre[pre >= 98] = 1
+		accuracy += sum((intest_y == pre) == True) / len(pre)
+	
+	accuracy = accuracy / iternum
+	return accuracy
+
+
+if __name__ == "__main__":
+
+	train_start = time.time()
+
+	study = optuna.create_study(direction="maximize")
+	study.optimize(objective, n_trials=1000, show_progress_bar=True)
+
+	print("Number of finished trials: ", len(study.trials))
+	print("Best trial:")
+
+
+	trial = study.best_trial
+
+	print("  Accuracy: {}".format(trial.value))
+	print("  Best hyperparameters: ")
+	for key, value in trial.params.items():
+		print("	{}: {}".format(key, value))
+
+ 
+	accuracy = 0
+	for i in range(iternum):  
+		clf = RandomForestRegressor(**study.best_params, random_state = 1234)  
+		clf.fit(train_X, train_y)
+
+		pre = clf.predict(test_X[i]).flatten()
+		intest_y = np.log(-(test_y[i]/(test_y[i] - 1))) / multstd + impstd
+		intest_y = intest_y.flatten()
+		pre = pre.astype('float64')
+		pre[pre <= 0] = 1e-10
+		pre[pre >= 1] = 1-1e-10
+		pre = np.log(-(pre/(pre - 1))) / multstd + impstd
+		pre[pre > 100] = 100
+		pre[pre < 50] = 50
+		intest_y[intest_y < 98] = 0
+		intest_y[intest_y >= 98] = 1
+		pre[pre < 98] = 0
+		pre[pre >= 98] = 1
+		accuracy += sum((intest_y == pre) == True) / len(pre)
+	
+	accuracy = accuracy / iternum
+	print("Accuracy: {}".format(accuracy))
